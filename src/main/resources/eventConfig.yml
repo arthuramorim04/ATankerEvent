@@ -1,25 +1,53 @@
-maxPlayer: 0
-minStart: 5
+maxPlayer: 5
+minStart: 0
 priceAcess: 10000
-announcer: 3
-timerAnnouncer: 30
+announcer: 2
+timerAnnouncer: 10
 
-position:
+cabin:
   world: "world"
   x: 224.0
   y: 75.0
   z: 267.0
+arena:
+  world: "world"
+  x: 230.5
+  y: 73.0
+  z: 277.5
+
+set:
+  helmet:
+    id: 302
+  armor:
+    id: 303
+  legs:
+    id: 304
+  boots:
+    id: 305
+
+items:
+  1:
+    id: 272
+    data: 0
+    quantity: 1
+  2:
+    id: 322
+    data: 0
+    quantity: 16
 
 reward:
+  coins: 1000
   commandEnable: true
   cmds:
-    - 'a'
+    - 'dsadsa %player%'
   itemEnable: true
   items:
     1:
-      id: 1
+      id: 272
       data: 0
+      name: "Espada Tanker"
       quantity: 1
-      enchantList: []
+      enchantList:
+        - 'FIRE_ASPECT,1'
       lore:
         - '&bRecompensa do evento tanker'

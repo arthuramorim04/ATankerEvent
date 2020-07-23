@@ -1,8 +1,0 @@
-com\arthuramorim\manager\EventManager.class
-com\arthuramorim\TresheTanker.class
-com\arthuramorim\listener\StartEvent.class
-com\arthuramorim\listener\StartEvent$1.class
-com\arthuramorim\commands\StartCommand.class
-com\arthuramorim\config\ConfigsAPI.class
-com\arthuramorim\entity\Event.class
-com\arthuramorim\entity\Reward.class

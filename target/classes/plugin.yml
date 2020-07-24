@@ -1,7 +1,0 @@
-name: TankerEvent
-version: 1.0
-main: com.arthuramorim.TresheTanker
-depend: [ACore]
-
-commands:
-  tanker:

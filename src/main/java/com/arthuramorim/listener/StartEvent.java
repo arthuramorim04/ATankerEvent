@@ -80,7 +80,8 @@ public class StartEvent {
         Bukkit.getServer().broadcastMessage(TextUtil.color(
                 "\n&eParticipantes: &f" + manager.getParticipants().size() +
                         "\n&eAnúncio: &f" + currentAnnouncement + "/" + maxEventAnnouncer +
-                        "\n&eValor para participar: &f" + priceAcess + " coins"));
+                        "\n&eValor para participar: &f" + priceAcess + " coins"+
+                        "\n"+plugin.getEventConfig().getConfigFile().getString("messages.reward")));
         Bukkit.getServer().broadcastMessage(TextUtil.color("\n&ePara participar digite &b/tanker entrar"));
 
     }

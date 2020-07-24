@@ -4,6 +4,7 @@ import com.arthuramorim.TresheTanker;
 import com.arthuramorim.manager.EventManager;
 import com.arthuramorim.utils.utils.TextUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -21,6 +22,8 @@ public class PlayerDeath implements Listener {
     @EventHandler
     public void onDeath(PlayerDeathEvent event) {
 
+        FileConfiguration config = plugin.getEventConfig().getConfigFile();
+
         if (plugin.getEventManager().getEventStatus().equals(EventStatus.IN_PROGRESS)) {
             EventManager eventManager = plugin.getEventManager();
 
@@ -29,17 +32,27 @@ public class PlayerDeath implements Listener {
 
             if (eventManager.getParticipants().contains(event.getEntity().getPlayer())) {
                 eventManager.getParticipants().remove(event.getEntity().getPlayer());
-                player.sendMessage(TextUtil.color("&cVocê foi eliminado do evento por ") + killer.getName());
+                player.sendMessage(TextUtil.color(config.getString("messages.elimined").replace("%killer%", killer.getName())));
                 event.getDrops().clear();
+
+                if (eventManager.hasClan(player)) {
+                    if (eventManager.lastClanMember(player)) {
+                        eventManager.chageFriendFire(player, false);
+                    }
+                }
+
                 if (eventManager.getParticipants().size() == 1) {
-                    Bukkit.broadcastMessage(TextUtil.color("&aParabens! O vencedor do evento tanker foi ") + killer.getName());
-                    killer.getInventory().clear();
-                    killer.getInventory().setHelmet(null);
-                    killer.getInventory().setChestplate(null);
-                    killer.getInventory().setLeggings(null);
-                    killer.getInventory().setBoots(null);
+                    Bukkit.broadcastMessage(TextUtil.color(config.getString("messages.winner")).replace("%player%", killer.getName()));
+                    eventManager.clearInventoryPlayer(killer);
                     eventManager.setReward(killer);
                     eventManager.teleportWinner(killer);
+                    if (eventManager.hasClan(player)) {
+                        if (eventManager.lastClanMember(player)) {
+                            eventManager.chageFriendFire(player, false);
+                        }
+
+                    }
+                    eventManager.setNewWinnerConfig(killer);
                     eventManager.closeEvent();
                 }
             }

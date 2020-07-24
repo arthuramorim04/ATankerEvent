@@ -33,4 +33,8 @@ public class ConfigsAPI {
     public FileConfiguration getConfigFile() {
         return configFile;
     }
+
+    public File getConfig() {
+        return config;
+    }
 }

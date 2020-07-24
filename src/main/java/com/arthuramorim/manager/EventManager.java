@@ -9,6 +9,7 @@ import com.arthuramorim.utils.utils.MakeItem;
 import com.arthuramorim.utils.utils.TextUtil;
 import lombok.Getter;
 import lombok.Setter;
+import net.sacredlabyrinth.phaed.simpleclans.ClanPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -93,18 +94,32 @@ public class EventManager {
     public void setItems(Player player) {
 
         FileConfiguration configFile = plugin.getEventConfig().getConfigFile();
-        for (Player participant : this.participants) {
-            participant.getInventory().setHelmet(new MakeItem(configFile.getInt("set.helmet.id")).build());
-            participant.getInventory().setChestplate(new MakeItem(configFile.getInt("set.armor.id")).build());
-            participant.getInventory().setLeggings(new MakeItem(configFile.getInt("set.legs.id")).build());
-            participant.getInventory().setBoots(new MakeItem(configFile.getInt("set.boots.id")).build());
+        MakeItem helmetMake = new MakeItem(configFile.getInt("set.helmet.id"), (byte) configFile.getInt("set.helmet.data"));
+        ItemStack helmet = enchantSetAndWeapon(helmetMake, "helmet").build();
+        player.getInventory().setHelmet(helmet);
 
-            configFile.getConfigurationSection("items").getKeys(false).forEach(PostItem -> {
-                ItemStack item = new MakeItem(configFile.getInt("items." + PostItem + ".id"), (byte) configFile.getInt("items." + PostItem + ".data")).build();
-                item.setAmount(configFile.getInt("items." + PostItem + ".quantity"));
-                player.getInventory().addItem(item);
-            });
-        }
+        MakeItem armorMake = new MakeItem(configFile.getInt("set.armor.id"), (byte) configFile.getInt("set.armor.data"));
+        ItemStack armor = enchantSetAndWeapon(armorMake, "armor").build();
+        player.getInventory().setChestplate(armor);
+
+        MakeItem legsMake = new MakeItem(configFile.getInt("set.legs.id"), (byte) configFile.getInt("set.legs.data"));
+        ItemStack legs = enchantSetAndWeapon(legsMake, "legs").build();
+        player.getInventory().setLeggings(legs);
+
+        MakeItem bootsMake = new MakeItem(configFile.getInt("set.boots.id"), (byte) configFile.getInt("set.boots.data"));
+        ItemStack boots = enchantSetAndWeapon(bootsMake, "boots").build();
+        player.getInventory().setBoots(boots);
+
+        MakeItem weaponMake = new MakeItem(configFile.getInt("set.weapon.id"), (byte) configFile.getInt("set.weapon.data"));
+        ItemStack weapon = enchantSetAndWeapon(weaponMake, "weapon").build();
+        player.getInventory().setItem(0,weapon);
+
+        configFile.getConfigurationSection("items").getKeys(false).forEach(PostItem -> {
+            ItemStack item = new MakeItem(configFile.getInt("items." + PostItem + ".id"), (byte) configFile.getInt("items." + PostItem + ".data")).build();
+            item.setAmount(configFile.getInt("items." + PostItem + ".quantity"));
+            player.getInventory().addItem(item);
+        });
+
 
     }
 
@@ -115,19 +130,28 @@ public class EventManager {
         Integer z = plugin.getEventConfig().getConfigFile().getInt("cabin.z");
         Location location = new Location(world, x, y, z);
         for (Player player : players) {
+
+
+
             player.teleport(location);
         }
     }
 
     public void teleportToArena(Set<Player> players) {
+
+
         World world = Bukkit.getServer().getWorld(plugin.getEventConfig().getConfigFile().getString("cabin.world"));
         Integer x = plugin.getEventConfig().getConfigFile().getInt("arena.x");
         Integer y = plugin.getEventConfig().getConfigFile().getInt("arena.y");
         Integer z = plugin.getEventConfig().getConfigFile().getInt("arena.z");
         Location location = new Location(world, x, y, z);
         for (Player player : players) {
+            clearInventoryPlayer(player);
             player.teleport(location);
             setItems(player);
+            if (hasClan(player)) {
+                chageFriendFire(player, true);
+            }
         }
     }
 
@@ -149,21 +173,81 @@ public class EventManager {
         }
     }
 
-//    protected void enableDamagerAll(Player player) {
-//        plugin.getSimpleClans().getClanManager().getClanPlayer(player).setFriendlyFire(true);
-//    }
+
+    public boolean hasClan(Player player) {
+        ClanPlayer clanPlayer = plugin.getSimpleClans().getClanManager().getClanPlayer(player);
+
+        if (clanPlayer == null) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    public void chageFriendFire(Player player, Boolean status) {
+        plugin.getClanPlayerManager(player).setFriendlyFire(status);
+    }
 
 
-//    public boolean lastClanMember(Player deathPlayer) {
-//        Clan clan = plugin.getSimpleClans().getClanManager().getClanPlayer(deathPlayer).getClan();
-//
-//        for (Player participant : participants) {
-//            if (plugin.getSimpleClans().getClanManager().getClanPlayer(participant).getClan().equals(clan)) {
-//                return false;
-//            }
-//        }
-//
-//        return true;
-//    }
+    public boolean lastClanMember(Player deathPlayer) {
+        ClanPlayer cp = plugin.getSimpleClans().getClanManager().getClanPlayer(deathPlayer);
+        String tag = cp.getTag();
+
+        for (ClanPlayer member : plugin.getSimpleClans().getClanManager().getClan(tag).getMembers()) {
+            if (participants.contains(member)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void clearInventoryPlayer(Player player) {
+
+        player.getInventory().clear();
+        player.getInventory().setHelmet(null);
+        player.getInventory().setChestplate(null);
+        player.getInventory().setLeggings(null);
+        player.getInventory().setBoots(null);
+
+    }
+
+    public MakeItem enchantSetAndWeapon(MakeItem item, String nameItem) {
+        FileConfiguration configFile = plugin.getEventConfig().getConfigFile();
+        configFile.getStringList("set." + nameItem + ".enchantList").forEach(enchant -> {
+            try {
+                String[] aux = null;
+                String encanto = null;
+                aux = enchant.trim().split(",");
+                encanto = aux[0];
+                Integer level = Integer.valueOf(aux[1]);
+
+                item.addEnchantment(Enchantment.getByName(encanto), level);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.out.println("Erro ao gerar encantamento " + enchant + " do item " + item);
+
+            }
+        });
+        return item;
+    }
+    public void removePlayerForItemInInventory(){
+        for (Player player : participants) {
+            if (PlayerUtil.emptySlots(player) < player.getInventory().getSize()) {
+                participants.remove(player);
+                PlayerUtil.addBalance(player, plugin.getEventConfig().getConfigFile().getInt("priceAcess"));
+                player.sendMessage(TextUtil.color(plugin.getEventConfig().getConfigFile().getString("messages.items_in_inv")));
+            }
+        }
+    }
+    public void setNewWinnerConfig(Player winner){
+        try{
+            String name = winner.getName();
+            plugin.getEventConfig().getConfigFile().set("lastWinner", name);
+            plugin.getEventConfig().getConfigFile().save(plugin.getEventConfig().getConfig());
+            plugin.getEventConfig().reload();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
 }

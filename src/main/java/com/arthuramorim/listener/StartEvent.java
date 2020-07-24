@@ -37,7 +37,7 @@ public class StartEvent {
                 announcer++;
                 if (manager.getEventStatus() == EventStatus.FINISHED) {
                     this.cancel();
-                    Bukkit.broadcastMessage(TextUtil.color("&cO evento foi cancelado por um staff."));
+                    Bukkit.broadcastMessage(TextUtil.color(eventConfig.getString("messages.canceled")));
                 } else {
 
 
@@ -46,24 +46,26 @@ public class StartEvent {
                     }
 
                     if (announcer == (event.getAnnouncers() + 1)) {
-                        if(manager.getParticipants().size() >= event.getMinStart()){
-                            Bukkit.broadcastMessage(TextUtil.color("&eEvento fechado! Participantes se preparem!"));
+
+                        manager.removePlayerForItemInInventory();
+
+                        if (manager.getParticipants().size() >= event.getMinStart()) {
+                            Bukkit.broadcastMessage(TextUtil.color(eventConfig.getString("messages.close")));
                             manager.teleportToCabin(manager.getParticipants());
                             manager.setEventStatus(EventStatus.CLOSED);
-                        }else{
-                            Bukkit.broadcastMessage(TextUtil.color("&cEvento cancelado por nao atingir o minimo de jogadores"));
+                        } else {
+                            Bukkit.broadcastMessage(TextUtil.color(eventConfig.getString("messages.not_have_min")));
                             manager.closeEvent();
                             manager.setEventStatus(EventStatus.FINISHED);
+                            this.cancel();
                         }
                     }
 
                     if (announcer == (event.getAnnouncers() + 2)) {
-                        Bukkit.broadcastMessage(TextUtil.color("&aEvento iniciado! Que o melhor sobreviva!"));
+                        Bukkit.broadcastMessage(TextUtil.color(eventConfig.getString("messages.start")));
                         manager.setEventStatus(EventStatus.IN_PROGRESS);
                         this.cancel();
                         manager.teleportToArena(manager.getParticipants());
-
-                        //esse set vai ser substituido pela task que monitora os jogadores vivos
                     }
 
 
@@ -74,17 +76,13 @@ public class StartEvent {
 
 
     protected void eventMessage(Integer currentAnnouncement, Integer maxEventAnnouncer, Integer priceAcess) {
-        Bukkit.getServer().broadcastMessage(TextUtil.color("\n&a" +""+
-                "&eEvento Tanker\n" +
-                "&eParticipantes: " + manager.getParticipants().size() +
-                "\n&eAnuncio: &f" + currentAnnouncement + "/" + maxEventAnnouncer +
-                "\n&eValor para participar: &f" + priceAcess + "coins" +
-                "\n&a"+"" +
-                "\n&ePara participar digite &b/tanker entrar" +
-                "\n&a"+""));
+        Bukkit.getServer().broadcastMessage(TextUtil.color("\n&eEvento Tanker"));
+        Bukkit.getServer().broadcastMessage(TextUtil.color(
+                "\n&eParticipantes: &f" + manager.getParticipants().size() +
+                        "\n&eAnúncio: &f" + currentAnnouncement + "/" + maxEventAnnouncer +
+                        "\n&eValor para participar: &f" + priceAcess + " coins"));
+        Bukkit.getServer().broadcastMessage(TextUtil.color("\n&ePara participar digite &b/tanker entrar"));
+
     }
 
-    public Event getEvent() {
-        return event;
-    }
 }
